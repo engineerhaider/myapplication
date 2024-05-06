@@ -4,7 +4,9 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'mvn clean package'
-            }
+            } catch (err) {
+                echo "Error during build: ${err}"
+                throw err //Re-throw to fail the build
         }
         stage('Build Docker Image') {
             steps {
