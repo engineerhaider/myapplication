@@ -4,9 +4,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'mvn clean package'
-            } catch (err) {
-                echo "Error during build: ${err}"
-                throw err //Re-throw to fail the build
+            }
         }
         stage('Build Docker Image') {
             steps {
@@ -26,8 +24,9 @@ pipeline {
         }
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f k8s-deployment.yaml'
+                sh 'kubectl apply -f k8s-deployment.yml'
             }
         }
     }
 }
+
