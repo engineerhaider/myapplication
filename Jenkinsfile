@@ -1,25 +1,34 @@
-node {
-    def mvnHome
-    stage('Preparation') { // for display purposes
-        // Get some code from a GitHub repository
-        git 'https://github.com/engineerhaider/myapplication/'
-        // Get the Maven tool.
-        // ** NOTE: This 'M3' Maven tool must be configured
-        // **       in the global configuration.
-        mvnHome = tool 'M3'
-    }
-    stage('Build') {
-        // Run the maven build
-        withEnv(["MVN_HOME=$mvnHome"]) {
-            if (isUnix()) {
-                sh '"$MVN_HOME/bin/mvn" -Dmaven.test.failure.ignore clean package'
-            } else {
-                bat(/"%MVN_HOME%\bin\mvn" -Dmaven.test.failure.ignore clean package/)
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            } catch (err) {
+                echo "Error during build: ${err}"
+                throw err //Re-throw to fail the build
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("myapplication:${env.BUILD_ID}")
+                }
+            }
+        }
+        stage('Push Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker-credentials-id') {
+                        docker.image("myapplication:${env.BUILD_ID}").push()
+                    }
+                }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh 'kubectl apply -f k8s-deployment.yml'
             }
         }
     }
-    stage('Results') {
-        //junit '**/target/surefire-reports/TEST-com.example.demo.DemoApplicationTests.xml'
-        archiveArtifacts 'target/*.jar'
-    }
 }
+
