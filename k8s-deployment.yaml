@@ -18,7 +18,7 @@ spec:
       - name: myapplication
         image: myapplication:latest
         ports:
-        - containerPort: 8080
+        - containerPort: 8081
         resources:
           limits:
             cpu: "500m"
@@ -36,6 +36,6 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-  - port: 8080
+  - port: 8081
   selector:
     app: myapplication
