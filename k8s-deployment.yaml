@@ -17,6 +17,7 @@ spec:
       containers:
       - name: myapplication
         image: myapplication:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8081
         resources:
@@ -26,8 +27,8 @@ spec:
           requests:
             cpu: "250m"
             memory: "256Mi"
-      imagePullSecrets:
-      - name: myregistrykey
+      #imagePullSecrets:
+      #- name: myregistrykey
 ---
 apiVersion: v1
 kind: Service
@@ -35,7 +36,12 @@ metadata:
   name: myapplication-service
 spec:
   type: LoadBalancer
-  ports:
-  - port: 8081
   selector:
     app: myapplication
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8081  # Changed to match the exposed container port
+    - name: https
+      port: 443
+      targetPort: 8443  # Ensure this is correct or adjust as necessary
